@@ -7,18 +7,27 @@ app = FastAPI(title="My Ollama API", version="1.0.0")
 
 class ChatRequest(BaseModel):
     message: str
-    model: str = "gpt-oss:20b" 
+    model: str = "gpt-oss:20b"
 
 class ChatResponse(BaseModel):
     response: str
     model: str
-    
+
+# Fix CORS configuration
 app.add_middleware(
     CORSMiddleware,
-        "http://127.0.0.1:8000/docs",
-        "https://nordxgpt.vercel.app/",
-        "https://irnfnv-ip-130-231-176-211.tunnelmole.net/docs",  
+    allow_origins=[
+        "http://127.0.0.1:8000",
+        "https://nordxgpt.vercel.app",  # Remove trailing slash
+        "https://irnfnv-ip-130-231-176-211.tunnelmole.net",
+        "http://localhost:3000",  # For local testing
+        "*"  # Allow all origins for testing (remove in production)
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
 )
+
 @app.get("/")
 async def root():
     return {"message": "Ollama FastAPI server is running!"}

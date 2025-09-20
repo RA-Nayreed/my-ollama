@@ -151,12 +151,9 @@
         <h1>🤖 Ollama Chat Interface</h1>
         
         <div class="config">
-            <input type="url" id="apiUrl" placeholder="API URL (e.g., http://127.0.0.1:8000)" value="http://127.0.0.1:8000">
+            <input type="url" id="apiUrl" placeholder="API URL (e.g., http://127.0.0.1:8000)" value="https://irnfnv-ip-130-231-176-211.tunnelmole.net">
             <select id="modelSelect">
                 <option value="gpt-oss:20b">gpt-oss:20b</option>
-                <option value="llama2">llama2</option>
-                <option value="mistral">mistral</option>
-                <option value="codellama">codellama</option>
             </select>
             <button onclick="loadModels()">Refresh Models</button>
         </div>
@@ -217,7 +214,7 @@
             const message = messageInput.value.trim();
             if (!message) return;
 
-            const currentApiUrl = apiUrl.value || 'http://127.0.0.1:8000';
+            const currentApiUrl = apiUrl.value || 'http://127.0.0.1:8000/';
             const selectedModel = modelSelect.value;
 
             addMessage(message, true);
