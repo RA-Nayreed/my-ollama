@@ -7,8 +7,7 @@ app = FastAPI(title="My Ollama API", version="1.0.0")
 
 class ChatRequest(BaseModel):
     message: str
-    model: str = "gpt-oss:20b"
-    model: str = "gemma3:4b"
+    model: str = "gemma2:2b"  # Fixed: removed duplicate line
 
 class ChatResponse(BaseModel):
     response: str
@@ -19,9 +18,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:8000",
-        "https://nordxgpt.vercel.app",  # Remove trailing slash
+        "https://nordxgpt.vercel.app",
         "https://irnfnv-ip-130-231-176-211.tunnelmole.net",
-        "http://localhost:3000",  # For local testing
+        "http://localhost:3000",
         "*"  # Allow all origins for testing (remove in production)
     ],
     allow_credentials=True,
