@@ -255,7 +255,6 @@
             
             try {
                 const response = await fetch(`${currentApiUrl}/models`);
-                if (!response.ok) throw new Error('Failed to load models');
                 
                 const data = await response.json();
                 const modelSelect = document.getElementById('modelSelect');
