@@ -17,7 +17,7 @@ app.add_middleware(
     CORSMiddleware,
         "http://127.0.0.1:8000/docs",
         "https://nordxgpt.vercel.app/",
-        "https://slick-numbers-hope.loca.lt/",  # Your LocalTunnel URL
+        "https://myapi.loca.lt/docs",  # Your LocalTunnel URL
         "https://*.loca.lt",  
 )
 @app.get("/")
