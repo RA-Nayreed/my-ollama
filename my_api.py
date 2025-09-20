@@ -17,8 +17,7 @@ app.add_middleware(
     CORSMiddleware,
         "http://127.0.0.1:8000/docs",
         "https://nordxgpt.vercel.app/",
-        "https://myapi.loca.lt/docs",  # Your LocalTunnel URL
-        "https://*.loca.lt",  
+        "https://irnfnv-ip-130-231-176-211.tunnelmole.net/docs",  
 )
 @app.get("/")
 async def root():
