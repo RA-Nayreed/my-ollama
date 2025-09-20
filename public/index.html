@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Chat Interface</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .chat-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease-in;
+        }
+        .user-message {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            margin-left: 50px;
+            text-align: right;
+        }
+        .bot-message {
+            background: rgba(255, 255, 255, 0.1);
+            margin-right: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+        }
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .config {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        select, input[type="url"] {
+            padding: 10px;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        select option {
+            background: #333;
+            color: white;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #4facfe;
+            font-style: italic;
+        }
+        .error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Ollama Chat Interface</h1>
+        
+        <div class="config">
+            <input type="url" id="apiUrl" placeholder="API URL (e.g., http://127.0.0.1:8000)" value="http://127.0.0.1:8000">
+            <select id="modelSelect">
+                <option value="gpt-oss:20b">gpt-oss:20b</option>
+                <option value="llama2">llama2</option>
+                <option value="mistral">mistral</option>
+                <option value="codellama">codellama</option>
+            </select>
+            <button onclick="loadModels()">Refresh Models</button>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message bot-message">
+                👋 Hello! I'm ready to chat. What would you like to talk about?
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">🤔 Thinking...</div>
+        
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()" id="sendBtn">Send 🚀</button>
+        </div>
+        
+        <div id="errorContainer"></div>
+    </div>
+
+    <script>
+        let chatContainer = document.getElementById('chatContainer');
+        let messageInput = document.getElementById('messageInput');
+        let sendBtn = document.getElementById('sendBtn');
+        let loading = document.getElementById('loading');
+        let errorContainer = document.getElementById('errorContainer');
+        let apiUrl = document.getElementById('apiUrl');
+        let modelSelect = document.getElementById('modelSelect');
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = isUser ? `👤 ${content}` : `🤖 ${content}`;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error">❌ ${message}</div>`;
+            setTimeout(() => {
+                errorContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        function setLoading(isLoading) {
+            loading.style.display = isLoading ? 'block' : 'none';
+            sendBtn.disabled = isLoading;
+            sendBtn.textContent = isLoading ? 'Sending...' : 'Send 🚀';
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            const currentApiUrl = apiUrl.value || 'http://127.0.0.1:8000';
+            const selectedModel = modelSelect.value;
+
+            addMessage(message, true);
+            messageInput.value = '';
+            setLoading(true);
+
+            try {
+                const response = await fetch(`${currentApiUrl}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        model: selectedModel
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                addMessage(data.response);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Failed to send message: ${error.message}. Make sure your API is running and accessible.`);
+                addMessage("Sorry, I'm having trouble connecting to the server. Please check the API URL and try again.", false);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function loadModels() {
+            const currentApiUrl = apiUrl.value || 'http://127.0.0.1:8000';
+            
+            try {
+                const response = await fetch(`${currentApiUrl}/models`);
+                if (!response.ok) throw new Error('Failed to load models');
+                
+                const data = await response.json();
+                const modelSelect = document.getElementById('modelSelect');
+                
+                // Clear existing options
+                modelSelect.innerHTML = '';
+                
+                // Add models from API
+                data.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+                
+                showError = () => {}; // Clear any previous errors
+                
+            } catch (error) {
+                showError(`Failed to load models: ${error.message}`);
+            }
+        }
+
+        // Load models when page loads
+        window.onload = () => {
+            loadModels();
+        };
+    </script>
+</body>
+</html>
