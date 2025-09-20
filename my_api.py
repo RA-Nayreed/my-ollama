@@ -15,10 +15,10 @@ class ChatResponse(BaseModel):
     
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your domain
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+        "http://127.0.0.1:8000",
+        "https://nordxgpt.vercel.app/",
+        "https://slick-numbers-hope.loca.lt/",  # Your LocalTunnel URL
+        "https://*.loca.lt",  
 )
 @app.get("/")
 async def root():
